@@ -1,0 +1,15 @@
+cffi==1.15.0
+clickhouse-driver==0.2.3
+# Editable install with no version control (clickhouse-mysql==0.0.20200128)
+-e /Users/olegmahonya/Downloads/clickhouse-mysql-data-reader-master
+configobj==5.0.6
+cryptography==37.0.2
+mysql-replication==0.30
+mysqlclient==2.1.0
+pycparser==2.21
+PyMySQL==1.0.2
+pytz==2022.1
+pytz-deprecation-shim==0.1.0.post0
+six==1.16.0
+tzdata==2022.1
+tzlocal==4.2
