@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import os
 import time
 import logging
 import sys
@@ -296,7 +296,8 @@ class MySQLReader(Reader):
         self.stat_write_rows_event_finalyse()
 
     def process_update_rows_event(self, mysql_event):
-        client = Client('127.0.0.1', database=mysql_event.schema)
+        host = os.getenv('CH_HOST')
+        client = Client(host, database=mysql_event.schema)
         for row in mysql_event.rows:
             where = ''
             what = ''
@@ -322,7 +323,8 @@ class MySQLReader(Reader):
 
     def process_delete_rows_event(self, mysql_event):
         # Cупер костыляка 2
-        client = Client('127.0.0.1', database=mysql_event.schema)
+        host = os.getenv('CH_HOST')
+        client = Client(host, database=mysql_event.schema)
         for row in mysql_event.rows:
             where = ''
             for k, v in row['values'].items():
