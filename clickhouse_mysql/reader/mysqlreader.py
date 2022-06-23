@@ -14,6 +14,8 @@ from clickhouse_mysql.event.event import Event
 from clickhouse_mysql.tableprocessor import TableProcessor
 from clickhouse_mysql.util import Util
 from clickhouse_driver import Client
+from clickhouse_mysql.clioptions import AggregatedOptions
+# from clickhouse_mysql.config import Config
 #from pymysqlreplication.event import QueryEvent, RotateEvent, FormatDescriptionEvent
 
 
@@ -296,17 +298,14 @@ class MySQLReader(Reader):
         self.stat_write_rows_event_finalyse()
 
     def process_update_rows_event(self, mysql_event):
-        host = os.getenv('CH_HOST')
-        client = Client(host, database=mysql_event.schema)
+        #Cупер костыляка 1
+        options = AggregatedOptions()
+        dst_db = options['dst_schema']
+        dst_host = options['dst_host']
+        client = Client(dst_host, database=dst_db)
         for row in mysql_event.rows:
-            where = ''
+            updated_id = row['before_values']['id']
             what = ''
-            for k, v in row['before_values'].items():
-                v_type = type(v)
-                if v_type is not int:
-                    where += f"{k}='{v}' AND "
-                else:
-                    where += f"{k}={v} AND "
             for k, v in row['after_values'].items():
                 for k1, v1 in row['before_values'].items():
                     if k == k1 and v != v1:
@@ -316,25 +315,21 @@ class MySQLReader(Reader):
                         else:
                             what += f"{k}={v}, "
 
-            query = f"ALTER TABLE {mysql_event.schema}.{mysql_event.table} UPDATE {what[:-2]} where {where[:-4]};"
+            query = f"ALTER TABLE {dst_db}.{mysql_event.table} UPDATE {what[:-2]} where id={updated_id};"
             client.execute(query)
-        #Cупер костыляка 1
+
         logging.info("Update success")
+
 
     def process_delete_rows_event(self, mysql_event):
         # Cупер костыляка 2
-        host = os.getenv('CH_HOST')
-        client = Client(host, database=mysql_event.schema)
+        options = AggregatedOptions()
+        dst_db = options['dst_schema']
+        dst_host = options['dst_host']
+        client = Client(dst_host, database=dst_db)
         for row in mysql_event.rows:
-            where = ''
-            for k, v in row['values'].items():
-                v_type = type(v)
-                if v_type is not int:
-                    where += f"{k}='{v}' AND "
-                else:
-                    where += f"{k}={v} AND "
-
-            query = f"ALTER TABLE {mysql_event.schema}.{mysql_event.table} DELETE WHERE {where[:-4]};"
+            deleted_id = row['values']['id']
+            query = f"ALTER TABLE {dst_db}.{mysql_event.table} DELETE WHERE id={deleted_id};"
             client.execute(query)
         logging.info("DELETE Success")
 
