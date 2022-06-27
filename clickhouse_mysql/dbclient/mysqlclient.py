@@ -4,6 +4,7 @@
 import logging
 import MySQLdb
 from MySQLdb.cursors import Cursor
+from clickhouse_mysql.util import L
 
 
 class MySQLClient(object):
@@ -67,7 +68,7 @@ class MySQLClient(object):
                 use_unicode=True,
             )
             self.cursor = self.connection.cursor()
-            logging.debug("Connect to the database host={} port={} user={} password={} db={}".format(
+            L.debug("Connect to the database host={} port={} user={} password={} db={}".format(
                 self.host,
                 self.port,
                 self.user,
@@ -95,11 +96,11 @@ class MySQLClient(object):
             self.connect(db=db)
 
             sql = "USE " + db
-            logging.debug(sql)
+            L.debug(sql)
             self.cursor.execute(sql)
 
             sql = "SHOW TABLES"
-            logging.debug(sql)
+            L.debug(sql)
             self.cursor.execute(sql)
 
             tables = []
@@ -108,7 +109,7 @@ class MySQLClient(object):
                 tables.append(table_name)
 
         except Exception as err:
-            logging.debug("Unexpected error: {}".format(str(err)))
+            L.debug("Unexpected error: {}".format(str(err)))
             raise Exception("Can not list tables on host={} port={} user={} password={} db={}".format(
                 self.host,
                 self.port,

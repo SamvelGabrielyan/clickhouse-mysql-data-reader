@@ -3,6 +3,7 @@
 
 from clickhouse_mysql.tableprocessor import TableProcessor
 from MySQLdb.cursors import Cursor
+from clickhouse_mysql.util import L
 import logging
 
 
@@ -196,7 +197,7 @@ ENGINE = MergeTree(<PRIMARY_DATE_FIELD>, (<COMMA_SEPARATED_INDEX_FIELDS_LIST>), 
             # `integer_1` Nullable(Int32)
             # `u_integer_1` Nullable(UInt32)
             if self.column_skip.__contains__(_field):
-                logging.debug("table sql builder skip column %s",_field)
+                L.debug("table sql builder skip column %s",_field)
                 continue
             columns_description.append({
                 'field': _field,

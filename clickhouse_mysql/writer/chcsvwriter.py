@@ -7,6 +7,7 @@ import shlex
 
 from clickhouse_mysql.writer.writer import Writer
 from clickhouse_mysql.tableprocessor import TableProcessor
+from clickhouse_mysql.util import L
 
 
 class CHCSVWriter(Writer):
@@ -33,7 +34,7 @@ class CHCSVWriter(Writer):
             dst_schema += "_all"
         if dst_distribute and dst_table is not None:
             dst_table += "_all"
-        logging.info("CHCSWriter() connection_settings={} dst_schema={} dst_table={}".format(connection_settings, dst_schema, dst_table))
+        L.info("CHCSWriter() connection_settings={} dst_schema={} dst_table={}".format(connection_settings, dst_schema, dst_table))
         self.host = connection_settings['host']
         self.port = connection_settings['port']
         self.user = connection_settings['user']
@@ -55,12 +56,12 @@ class CHCSVWriter(Writer):
 
         events = self.listify(event_or_events)
         if len(events) < 1:
-            logging.warning('No events to insert. class: %s', __class__)
+            L.warning('No events to insert. class: %s', __class__)
             return
 
         # assume we have at least one Event
 
-        logging.debug('class:%s insert %d rows', __class__, len(events))
+        L.debug('class:%s insert %d rows', __class__, len(events))
 
         for event in events:
             schema = self.dst_schema if self.dst_schema else event.schema
@@ -93,8 +94,8 @@ class CHCSVWriter(Writer):
                 sql,
             )
 
-            logging.info('starting clickhouse-client process')
-            logging.debug('starting %s', bash)
+            L.info('starting clickhouse-client process')
+            L.debug('starting %s', bash)
             os.system(bash)
 
         pass

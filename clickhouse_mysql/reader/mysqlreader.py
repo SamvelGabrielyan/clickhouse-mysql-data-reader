@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import os
 import time
-import logging
 import sys
 import traceback
 
@@ -13,6 +12,7 @@ from clickhouse_mysql.reader.reader import Reader
 from clickhouse_mysql.event.event import Event
 from clickhouse_mysql.tableprocessor import TableProcessor
 from clickhouse_mysql.util import Util
+from clickhouse_mysql.util import L
 from clickhouse_driver import Client
 from clickhouse_mysql.clioptions import AggregatedOptions
 # from clickhouse_mysql.config import Config
@@ -68,32 +68,32 @@ class MySQLReader(Reader):
         self.nice_pause = nice_pause
         self.binlog_position_file=binlog_position_file
 
-        logging.info("raw dbs list. len()=%d", 0 if schemas is None else len(schemas))
+        L.info("raw dbs list. len()=%d", 0 if schemas is None else len(schemas))
         if schemas is not None:
             for schema in schemas:
-                logging.info(schema)
-        logging.info("normalised dbs list. len()=%d", 0 if self.schemas is None else len(self.schemas))
+                L.info(schema)
+        L.info("normalised dbs list. len()=%d", 0 if self.schemas is None else len(self.schemas))
         if self.schemas is not None:
             for schema in self.schemas:
-                logging.info(schema)
+                L.info(schema)
 
-        logging.info("raw tables list. len()=%d", 0 if tables is None else len(tables))
+        L.info("raw tables list. len()=%d", 0 if tables is None else len(tables))
         if tables is not None:
             for table in tables:
-                logging.info(table)
-        logging.info("normalised tables list. len()=%d", 0 if self.tables is None else len(self.tables))
+                L.info(table)
+        L.info("normalised tables list. len()=%d", 0 if self.tables is None else len(self.tables))
         if self.tables is not None:
             for table in self.tables:
-                logging.info(table)
+                L.info(table)
 
-        logging.info("raw tables-prefixes list. len()=%d", 0 if tables_prefixes is None else len(tables_prefixes))
+        L.info("raw tables-prefixes list. len()=%d", 0 if tables_prefixes is None else len(tables_prefixes))
         if tables_prefixes is not None:
             for table in tables_prefixes:
-                logging.info(table)
-        logging.info("normalised tables-prefixes list. len()=%d", 0 if self.tables_prefixes is None else len(self.tables_prefixes))
+                L.info(table)
+        L.info("normalised tables-prefixes list. len()=%d", 0 if self.tables_prefixes is None else len(self.tables_prefixes))
         if self.tables_prefixes is not None:
             for table in self.tables_prefixes:
-                logging.info(table)
+                L.info(table)
 
         if not isinstance(self.server_id, int):
             raise Exception("Please specify server_id of src server as int. Ex.: --src-server-id=1")
@@ -140,7 +140,7 @@ class MySQLReader(Reader):
         window_size = now - start
         if window_size > 0:
             rows_per_sec = rows_num / window_size
-            logging.info(
+            L.info(
                 'PERF - %f rows/sec, min(rows/event)=%d max(rows/event)=%d for last %d rows %f sec',
                 rows_per_sec,
                 rows_num_per_event_min if rows_num_per_event_min is not None else -1,
@@ -149,7 +149,7 @@ class MySQLReader(Reader):
                 window_size,
             )
         else:
-            logging.info("PERF - can not calc performance for time size=0")
+            L.info("PERF - can not calc performance for time size=0")
 
     def is_table_listened(self, table):
         """
@@ -214,11 +214,11 @@ class MySQLReader(Reader):
         self.write_rows_event_num += 1
         self.rows_num += len(mysql_event.rows)
         self.rows_num_since_interim_performance_report += len(mysql_event.rows)
-        logging.debug('WriteRowsEvent #%d rows: %d', self.write_rows_event_num, len(mysql_event.rows))
+        L.debug('WriteRowsEvent #%d rows: %d', self.write_rows_event_num, len(mysql_event.rows))
 
     def stat_write_rows_event_each_row(self):
         self.write_rows_event_each_row_num += 1
-        logging.debug('WriteRowsEvent.EachRow #%d', self.write_rows_event_each_row_num)
+        L.debug('WriteRowsEvent.EachRow #%d', self.write_rows_event_each_row_num)
 
     def stat_write_rows_event_each_row_for_each_row(self):
         self.rows_num += 1
@@ -241,7 +241,7 @@ class MySQLReader(Reader):
         if "{}.{}".format(event.schema, event.table) not in self.first_rows_passed:
             Util.log_row(event.first_row(), "first row in replication {}.{}".format(event.schema, event.table))
             self.first_rows_passed.append("{}.{}".format(event.schema, event.table))
-        logging.info(self.first_rows_passed)
+        L.info(self.first_rows_passed)
 
     def process_write_rows_event(self, mysql_event):
         """
@@ -318,7 +318,7 @@ class MySQLReader(Reader):
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} UPDATE {what[:-2]} where id={updated_id};"
             client.execute(query)
 
-        logging.info("Update success")
+        L.info("Update success")
 
 
     def process_delete_rows_event(self, mysql_event):
@@ -331,13 +331,13 @@ class MySQLReader(Reader):
             deleted_id = row['values']['id']
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} DELETE WHERE id={deleted_id};"
             client.execute(query)
-        logging.info("DELETE Success")
+        L.info("DELETE Success")
 
     def process_binlog_position(self, file, pos):
         if self.binlog_position_file:
             with open(self.binlog_position_file, "w") as f:
                 f.write("{}:{}".format(file, pos))
-        logging.debug("Next event binlog pos: {}.{}".format(file, pos))
+        L.debug("Next event binlog pos: {}.{}".format(file, pos))
 
     def read(self):
         # main function - read data from source
@@ -347,7 +347,8 @@ class MySQLReader(Reader):
         # fetch events
         try:
             while True:
-                logging.debug('Check events in binlog stream')
+                # TODO
+                # L.debug('Check events in binlog stream')
 
                 self.init_fetch_loop()
 
@@ -355,14 +356,15 @@ class MySQLReader(Reader):
                 self.stat_init_fetch_loop()
 
                 try:
-                    logging.debug('Pre-start binlog position: ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos) if self.binlog_stream.log_pos is not None else "undef")
+                    # TODO
+                    # L.debug('Pre-start binlog position: ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos) if self.binlog_stream.log_pos is not None else "undef")
 
                     # fetch available events from MySQL
                     for mysql_event in self.binlog_stream:
                         # new event has come
                         # check what to do with it
 
-                        logging.debug('Got Event ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos))
+                        L.debug('Got Event ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos))
 
                         # process event based on its type
                         if isinstance(mysql_event, WriteRowsEvent):
@@ -380,18 +382,18 @@ class MySQLReader(Reader):
 
                 except KeyboardInterrupt:
                     # pass SIGINT further
-                    logging.info("SIGINT received. Pass it further.")
+                    L.info("SIGINT received. Pass it further.")
                     raise
                 except Exception as ex:
                     if self.blocking:
                         # we'd like to continue waiting for data
                         # report and continue cycle
-                        logging.warning("Got an exception, skip it in blocking mode")
-                        logging.warning(ex)
+                        L.warning("Got an exception, skip it in blocking mode")
+                        L.warning(ex)
                     else:
                         # do not continue, report error and exit
-                        logging.critical("Got an exception, abort it in non-blocking mode")
-                        logging.critical(ex)
+                        L.critical("Got an exception, abort it in non-blocking mode")
+                        L.critical(ex)
                         sys.exit(1)
 
                 # all events fetched (or none of them available)
@@ -410,23 +412,23 @@ class MySQLReader(Reader):
                 self.notify('ReaderIdleEvent')
 
         except KeyboardInterrupt:
-            logging.info("SIGINT received. Time to exit.")
+            L.info("SIGINT received. Time to exit.")
         except Exception as ex:
-            logging.warning("Got an exception, handle it")
-            logging.warning(traceback.print_exc())
-            logging.warning(ex)
+            L.warning("Got an exception, handle it")
+            L.warning(traceback.print_exc())
+            L.warning(ex)
 
         try:
             self.binlog_stream.close()
         except Exception as ex:
-            logging.warning("Unable to close binlog stream correctly")
-            logging.warning(ex)
+            L.warning("Unable to close binlog stream correctly")
+            L.warning(ex)
 
         end_timestamp = int(time.time())
 
-        logging.info('start %d', self.start_timestamp)
-        logging.info('end %d', end_timestamp)
-        logging.info('len %d', end_timestamp - self.start_timestamp)
+        L.info('start %d', self.start_timestamp)
+        L.info('end %d', end_timestamp)
+        L.info('len %d', end_timestamp - self.start_timestamp)
 
 if __name__ == '__main__':
     connection_settings = {

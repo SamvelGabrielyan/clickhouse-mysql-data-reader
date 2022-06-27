@@ -5,6 +5,7 @@ from clickhouse_mysql.converter.converter import Converter
 
 import datetime
 import decimal
+from clickhouse_mysql.util import L
 import logging
 
 
@@ -28,7 +29,7 @@ class CHWriteConverter(Converter):
     ]
 
     def __init__(self, column_skip):
-        logging.debug("CHWriteConverter __init__()")
+        L.debug("CHWriteConverter __init__()")
         super().__init__(column_skip=column_skip)
 
     def column(self, column, value):

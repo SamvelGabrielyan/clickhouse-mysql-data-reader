@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-
+from clickhouse_mysql.util import L
 from clickhouse_mysql.writer.writer import Writer
 from clickhouse_mysql.event.event import Event
 from clickhouse_mysql.pool.bbpool import BBPool
@@ -21,7 +21,7 @@ class PoolWriter(Writer):
             max_pool_size=10000,
             max_flush_interval=60
     ):
-        logging.info("PoolWriter()")
+        L.info("PoolWriter()")
         self.writer_builder = writer_builder
         self.max_pool_size = max_pool_size
         self.max_flush_interval = max_flush_interval
@@ -34,7 +34,7 @@ class PoolWriter(Writer):
 
     def insert(self, event_or_events):
         """Insert data into Pool"""
-        logging.debug('class:%s insert', __class__)
+        L.debug('class:%s insert', __class__)
         self.pool.insert(event_or_events)
 
     def flush(self):

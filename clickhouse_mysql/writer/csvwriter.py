@@ -10,6 +10,7 @@ import uuid
 
 from clickhouse_mysql.writer.writer import Writer
 from clickhouse_mysql.event.event import Event
+from clickhouse_mysql.util import L
 
 
 class CSVWriter(Writer):
@@ -38,7 +39,7 @@ class CSVWriter(Writer):
             next_writer_builder=None,
             converter_builder=None,
     ):
-        logging.info("CSVWriter() "
+        L.info("CSVWriter() "
                      "csv_file_path={} "
                      "csv_file_path_prefix={} "
                      "csv_file_path_suffix_parts={} "
@@ -72,7 +73,7 @@ class CSVWriter(Writer):
             self.path = self.path_prefix + '_'.join(self.path_suffix_parts) + '.csv'
             self.delete = not csv_keep_file
 
-        logging.info("CSVWriter() self.path={}".format(self.path))
+        L.info("CSVWriter() self.path={}".format(self.path))
 
     def __del__(self):
         self.destroy()
@@ -101,12 +102,12 @@ class CSVWriter(Writer):
 
         events = self.listify(event_or_events)
         if len(events) < 1:
-            logging.warning('No events to insert. class: %s', __class__)
+            L.warning('No events to insert. class: %s', __class__)
             return
 
         # assume we have at least one Event
 
-        logging.debug('class:%s insert %d events', __class__, len(events))
+        L.debug('class:%s insert %d events', __class__, len(events))
 
         if not self.opened():
             self.open()
@@ -115,7 +116,7 @@ class CSVWriter(Writer):
             # pick any event from the list
             event = events[0]
             if not event.verify:
-                logging.warning('Event verification failed. Skip insert(). Event: %s Class: %s', event.meta(), __class__)
+                L.warning('Event verification failed. Skip insert(). Event: %s Class: %s', event.meta(), __class__)
                 return
 
             self.fieldnames = sorted(self.convert(copy.copy(event.first_row())).keys())
@@ -130,7 +131,7 @@ class CSVWriter(Writer):
 
         for event in events:
             if not event.verify:
-                logging.warning('Event verification failed. Skip one event. Event: %s Class: %s', event.meta(), __class__)
+                L.warning('Event verification failed. Skip one event. Event: %s Class: %s', event.meta(), __class__)
                 continue # for event
             for row in event:
                 self.writer.writerow(self.convert(row))

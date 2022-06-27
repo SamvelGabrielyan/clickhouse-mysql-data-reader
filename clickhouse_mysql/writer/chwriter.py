@@ -11,6 +11,7 @@ from clickhouse_mysql.dbclient.chclient import CHClient
 from clickhouse_mysql.writer.writer import Writer
 from clickhouse_mysql.tableprocessor import TableProcessor
 from clickhouse_mysql.event.event import Event
+from clickhouse_mysql.util import L
 
 
 class CHWriter(Writer):
@@ -35,7 +36,7 @@ class CHWriter(Writer):
             dst_schema += "_all"
         if dst_distribute and dst_table is not None:
             dst_table += "_all"
-        logging.info("CHWriter() connection_settings={} dst_schema={} dst_table={} dst_distribute={}".format(
+        L.info("CHWriter() connection_settings={} dst_schema={} dst_table={} dst_distribute={}".format(
             connection_settings, dst_schema, dst_table, dst_distribute))
         self.client = CHClient(connection_settings)
         self.dst_schema = dst_schema
@@ -55,12 +56,12 @@ class CHWriter(Writer):
 
         events = self.listify(event_or_events)
         if len(events) < 1:
-            logging.warning('No events to insert. class: %s', __class__)
+            L.warning('No events to insert. class: %s', __class__)
             return
 
         # assume we have at least one Event
 
-        logging.debug('class:%s insert %d event(s)', __class__, len(events))
+        L.debug('class:%s insert %d event(s)', __class__, len(events))
 
         # verify and converts events and consolidate converted rows from all events into one batch
 
@@ -68,7 +69,7 @@ class CHWriter(Writer):
         event_converted = None
         for event in events:
             if not event.verify:
-                logging.warning('Event verification failed. Skip one event. Event: %s Class: %s', event.meta(), __class__)
+                L.warning('Event verification failed. Skip one event. Event: %s Class: %s', event.meta(), __class__)
                 continue # for event
 
             event_converted = self.convert(event)
@@ -79,7 +80,7 @@ class CHWriter(Writer):
                         row[key] = str(row[key])
                 rows.append(row)
 
-        logging.debug('class:%s insert %d row(s)', __class__, len(rows))
+        L.debug('class:%s insert %d row(s)', __class__, len(rows))
 
         # determine target schema.table
 
@@ -92,7 +93,7 @@ class CHWriter(Writer):
             if self.dst_schema:
                 table = TableProcessor.create_migrated_table_name(prefix=self.dst_table_prefix, table=table)
 
-        logging.debug("schema={} table={} self.dst_schema={} self.dst_table={}".format(schema, table, self.dst_schema, self.dst_table))
+        L.debug("schema={} table={} self.dst_schema={} self.dst_table={}".format(schema, table, self.dst_schema, self.dst_table))
 
         # and INSERT converted rows
 
@@ -105,9 +106,9 @@ class CHWriter(Writer):
             )
             self.client.execute(sql, rows)
         except Exception as ex:
-            logging.critical('QUERY FAILED')
-            logging.critical('ex={}'.format(ex))
-            logging.critical('sql={}'.format(sql))
+            L.critical('QUERY FAILED')
+            L.critical('ex={}'.format(ex))
+            L.critical('sql={}'.format(sql))
             sys.exit(0)
 
         # all DONE
