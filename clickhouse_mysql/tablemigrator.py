@@ -8,7 +8,7 @@ from MySQLdb.cursors import SSDictCursor,Cursor
 from clickhouse_mysql.tableprocessor import TableProcessor
 from clickhouse_mysql.tablesqlbuilder import TableSQLBuilder
 from clickhouse_mysql.event.event import Event
-from clickhouse_mysql.util import L
+# from clickhouse_mysql.util import L
 
 
 class TableMigrator(TableSQLBuilder):
@@ -77,9 +77,9 @@ class TableMigrator(TableSQLBuilder):
         # ]
 
         # debug info
-        L.info("tables_where_clauses={}".format(tables_where_clauses))
+        logging.info("tables_where_clauses={}".format(tables_where_clauses))
         for table_where in tables_where_clauses:
-            L.info("table_where={}".format(table_where))
+            logging.info("table_where={}".format(table_where))
 
         # process WHERE migration clauses
         for table_where_clause in tables_where_clauses:
@@ -113,10 +113,10 @@ class TableMigrator(TableSQLBuilder):
                 self.where_clauses[db][table] = where_file_name
 
         # debug info
-        L.info("migration where clauses")
+        logging.info("migration where clauses")
         for db, tables in self.where_clauses.items():
             for table, where in tables.items():
-                L.info("{}.{}.where={}".format(db, table, where))
+                logging.info("{}.{}.where={}".format(db, table, where))
 
     def migrate_all_tables(self, with_create_database):
         """
@@ -129,14 +129,14 @@ class TableMigrator(TableSQLBuilder):
 
         # sanity check
         if dbs is None:
-            L.info("Nothing to migrate")
+            logging.info("Nothing to migrate")
             return None
 
         # debug info
-        L.info("List for migration:")
+        logging.info("List for migration:")
         for db in dbs:
             for table in dbs[db]:
-                L.info("  {}.{}".format(db, table))
+                logging.info("  {}.{}".format(db, table))
 
         # migration templates
         templates = self.templates()
@@ -144,7 +144,7 @@ class TableMigrator(TableSQLBuilder):
         # migrate table-by-table
         for db in dbs:
             for table in dbs[db]:
-                L.info("Start migration {}.{}".format(db, table))
+                logging.info("Start migration {}.{}".format(db, table))
                 if with_create_database:
                     print("Running with chclient {};".format(templates[db][table]['create_database']))
                     self.chclient.execute(templates[db][table]['create_database'])
@@ -162,19 +162,19 @@ class TableMigrator(TableSQLBuilder):
 
         # sanity check
         if dbs is None:
-            L.info("Nothing to migrate")
+            logging.info("Nothing to migrate")
             return None
 
         # debug info
-        L.info("List for migration:")
+        logging.info("List for migration:")
         for db in dbs:
             for table in dbs[db]:
-                L.info("  {}.{}".format(db, table))
+                logging.info("  {}.{}".format(db, table))
 
         # migrate table-by-table
         for db in dbs:
             for table in dbs[db]:
-                L.info("Start migration {}.{}".format(db, table))
+                logging.info("Start migration {}.{}".format(db, table))
                 self.migrate_one_table_data(db=db, table=table)
 
     def migrate_one_table_data(self, db=None, table=None):
@@ -194,7 +194,7 @@ class TableMigrator(TableSQLBuilder):
             sql += " WHERE {}".format(self.where_clauses[db][table])
 
         try:
-            L.info("migrate_table. sql={}".format(sql))
+            logging.info("migrate_table. sql={}".format(sql))
             self.client.cursorclass = SSDictCursor
             self.client.connect(db=db)
             self.client.cursor.execute(sql)
@@ -215,7 +215,7 @@ class TableMigrator(TableSQLBuilder):
 
                 cnt += len(rows)
         except Exception as ex:
-            L.critical("Critical error: {}".format(str(ex)))
+            logging.critical("Critical error: {}".format(str(ex)))
             raise Exception("Can not migrate table on db={} table={}".format(
                 db,
                 table,
@@ -230,7 +230,7 @@ class TableMigrator(TableSQLBuilder):
         fields = []
         for (_field, _type, _null, _key, _default, _extra,) in self.client.cursor:
             if self.column_skip.__contains__(_field):
-                L.debug("skip column %s",_field)
+                logging.debug("skip column %s",_field)
                 continue
             fields.append('`{}`'.format(_field))
 

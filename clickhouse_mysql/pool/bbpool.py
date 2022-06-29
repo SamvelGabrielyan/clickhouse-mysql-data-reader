@@ -6,7 +6,7 @@ import logging
 
 from clickhouse_mysql.pool.pool import Pool
 from clickhouse_mysql.objectbuilder import ObjectBuilder
-from clickhouse_mysql.util import L
+# from clickhouse_mysql.util import L
 
 
 # Buckets Belts' Index Generator
@@ -136,7 +136,7 @@ class BBPool(Pool):
             self.buckets_num_total += 1
             self.items_num_total += most_right_bucket_size
 
-            L.info('rot now:%f bktttl:%d bktitemsttl: %d index:%s reason:%s bktsonbelt:%d bktsize:%d beltnum:%d',
+            logging.info('rot now:%f bktttl:%d bktitemsttl: %d index:%s reason:%s bktsonbelt:%d bktsize:%d beltnum:%d',
                  now,
                  self.buckets_num_total,
                  self.items_num_total,
@@ -163,14 +163,14 @@ class BBPool(Pool):
             if window_size > 0:
                 buckets_per_sec = (self.buckets_num_total - self.prev_buckets_count) / window_size
                 items_per_sec = (self.items_num_total - self.prev_items_count) / window_size
-                L.info(
+                logging.info(
                     'PERF - buckets_per_sec:%f items_per_sec:%f for last %d sec',
                      buckets_per_sec,
                      items_per_sec,
                      window_size
                 )
             else:
-                L.info("PERF - buckets window size=0 can not calc performance for this window")
+                logging.info("PERF - buckets window size=0 can not calc performance for this window")
 
         self.prev_time = now
         self.prev_buckets_count = self.buckets_num_total

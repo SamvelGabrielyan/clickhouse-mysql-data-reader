@@ -3,7 +3,7 @@
 
 import logging
 from clickhouse_mysql.event.event import Event
-from clickhouse_mysql.util import L
+# from clickhouse_mysql.util import L
 
 
 class Converter(object):
@@ -11,9 +11,9 @@ class Converter(object):
     column_skip = []
 
     def __init__(self, column_skip):
-        L.debug("Converter __init__()")
+        logging.debug("Converter __init__()")
         self.column_skip = [] if column_skip is None else column_skip
-        L.debug(self.column_skip)
+        logging.debug(self.column_skip)
 
     def row(self, row):
         return row

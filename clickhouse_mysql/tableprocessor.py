@@ -4,7 +4,7 @@
 import logging
 import MySQLdb
 from clickhouse_mysql.dbclient.mysqlclient import MySQLClient
-from clickhouse_mysql.util import L
+# from clickhouse_mysql.util import L
 
 
 class TableProcessor(object):
@@ -79,10 +79,10 @@ class TableProcessor(object):
         # prepare list of tables for each db
         res = TableProcessor.group_tables(self.dbs, self.tables)
         if res is None:
-            L.warning("Can't group tables for explicitly specified db/tables")
+            logging.warning("Can't group tables for explicitly specified db/tables")
             return None
         else:
-            L.debug("{} group tables for explicitly specified db/tables".format(res))
+            logging.debug("{} group tables for explicitly specified db/tables".format(res))
 
         # process implicitly specified tables - when db name only specified and we add all tables from this db
         # for dbs with no tables list specified - meaning all tables - list tables directly from DB
@@ -91,18 +91,18 @@ class TableProcessor(object):
                 # no tables in db, try to add all tables from DB
                 tables = self.tables_list(db)
                 res[db].add(tables)
-                L.debug("add {} tables to {} db".format(tables, db))
+                logging.debug("add {} tables to {} db".format(tables, db))
 
         # process tables specified with prefix
         # prepare list of prefixes
         prefixes = TableProcessor.group_tables(tables=self.tables_prefixes)
-        L.debug("{} group tables for prefix specified db/tables".format(prefixes))
+        logging.debug("{} group tables for prefix specified db/tables".format(prefixes))
         for db, prefixes in prefixes.items():
             for prefix in prefixes:
                 # match all tables for specified prefix
                 tables_match = self.tables_match(db, prefix)
                 if tables_match:
-                    L.debug("{} tables match prefix {}.{}".format(tables_match, db, prefix))
+                    logging.debug("{} tables match prefix {}.{}".format(tables_match, db, prefix))
                     # we have tables which match specified prefix
                     for table in tables_match:
                         # ensure {'db': set()}
@@ -111,7 +111,7 @@ class TableProcessor(object):
                         # add table to the set of tables
                         res[db].add(table)
                 else:
-                    L.debug("No tables match prefix {}.{}".format(db, prefix))
+                    logging.debug("No tables match prefix {}.{}".format(db, prefix))
         # dict of sets
         return res
 
@@ -135,12 +135,12 @@ class TableProcessor(object):
         res = []
         # list all tables in db
         tables = self.tables_list(db)
-        L.debug("{} tables {}".format(db, tables))
+        logging.debug("{} tables {}".format(db, tables))
         for table in tables:
-            L.debug("check {}.{} match prefix {}".format(db, table, prefix))
+            logging.debug("check {}.{} match prefix {}".format(db, table, prefix))
             if table.startswith(prefix):
                 res.append(table)
-                L.debug("{}.{} match prefix {}".format(db, table, prefix))
+                logging.debug("{}.{} match prefix {}".format(db, table, prefix))
         return res
 
     @staticmethod

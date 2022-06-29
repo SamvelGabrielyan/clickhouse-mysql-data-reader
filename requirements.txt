@@ -12,4 +12,3 @@ pytz-deprecation-shim==0.1.0.post0
 six==1.16.0
 tzdata==2022.1
 tzlocal==4.2
-pygelf

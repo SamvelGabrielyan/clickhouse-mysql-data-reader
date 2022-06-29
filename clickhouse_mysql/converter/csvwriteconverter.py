@@ -3,7 +3,7 @@
 
 import logging
 from clickhouse_mysql.converter.converter import Converter
-from clickhouse_mysql.util import L
+# from clickhouse_mysql.util import L
 
 
 class CSVWriteConverter(Converter):
@@ -12,7 +12,7 @@ class CSVWriteConverter(Converter):
     defaults = None
 
     def __init__(self, defaults=None, column_skip=None):
-        L.debug("CSVWriteConverter __init__()")
+        logging.debug("CSVWriteConverter __init__()")
         self.defaults = [] if defaults is None else defaults
         super().__init__(column_skip=column_skip)
 
