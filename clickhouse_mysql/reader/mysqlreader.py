@@ -318,7 +318,7 @@ class MySQLReader(Reader):
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} UPDATE {what[:-2]} where id={updated_id};"
             client.execute(query)
 
-        L.info("Update success")
+            L.info("Update success", query)
 
 
     def process_delete_rows_event(self, mysql_event):
@@ -331,7 +331,7 @@ class MySQLReader(Reader):
             deleted_id = row['values']['id']
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} DELETE WHERE id={deleted_id};"
             client.execute(query)
-        L.info("DELETE Success")
+            L.info("DELETE Success", query)
 
     def process_binlog_position(self, file, pos):
         if self.binlog_position_file:
