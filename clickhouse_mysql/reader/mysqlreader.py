@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import json
 import os
 import time
 import sys
@@ -249,6 +250,17 @@ class MySQLReader(Reader):
         :param mysql_event: WriteRowsEvent instance
         :return:
         """
+        new_rows = []
+        for row in mysql_event.rows:
+            new_row_dict = {'values': {}}
+            for k, v in row['values'].items():
+                if type(v) == dict or type(v) == list:
+                    v = '0'
+                new_row_dict['values'][k] = v
+            new_rows.append(new_row_dict)
+        for i in range(len(new_rows)):
+            mysql_event.rows[i] = new_rows[i]
+
         if self.tables_prefixes:
             # we have prefixes specified
             # need to find whether current event is produced by table in 'looking-into-tables' list
@@ -310,6 +322,8 @@ class MySQLReader(Reader):
                 for k1, v1 in row['before_values'].items():
                     if k == k1 and v != v1:
                         v_type = type(v)
+                        if v_type == dict or v_type == list:
+                            v = '0'
                         if v_type is not int:
                             what += f"{k}='{v}', "
                         else:
@@ -317,8 +331,8 @@ class MySQLReader(Reader):
 
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} UPDATE {what[:-2]} where id={updated_id};"
             client.execute(query)
-            L.info(query)
-            L.info("Update success")
+
+        L.info("Update success")
 
 
     def process_delete_rows_event(self, mysql_event):
@@ -331,8 +345,7 @@ class MySQLReader(Reader):
             deleted_id = row['values']['id']
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} DELETE WHERE id={deleted_id};"
             client.execute(query)
-            L.info(query)
-            L.info("DELETE Success")
+        L.info("DELETE Success")
 
     def process_binlog_position(self, file, pos):
         if self.binlog_position_file:
@@ -348,8 +361,7 @@ class MySQLReader(Reader):
         # fetch events
         try:
             while True:
-                # TODO
-                # L.debug('Check events in binlog stream')
+                L.debug('Check events in binlog stream')
 
                 self.init_fetch_loop()
 
@@ -357,8 +369,7 @@ class MySQLReader(Reader):
                 self.stat_init_fetch_loop()
 
                 try:
-                    # TODO
-                    # L.debug('Pre-start binlog position: ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos) if self.binlog_stream.log_pos is not None else "undef")
+                    L.debug('Pre-start binlog position: ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos) if self.binlog_stream.log_pos is not None else "undef")
 
                     # fetch available events from MySQL
                     for mysql_event in self.binlog_stream:
@@ -366,7 +377,6 @@ class MySQLReader(Reader):
                         # check what to do with it
 
                         L.debug('Got Event ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos))
-
                         # process event based on its type
                         if isinstance(mysql_event, WriteRowsEvent):
                             self.process_write_rows_event(mysql_event)
