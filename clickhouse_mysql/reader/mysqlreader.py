@@ -332,6 +332,7 @@ class MySQLReader(Reader):
                             what += f"{k}={v}, "
 
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} UPDATE {what[:-2]} where id={updated_id};"
+            L.info(query)
             client.execute(query)
 
         L.info("Update success")
@@ -349,6 +350,7 @@ class MySQLReader(Reader):
             deleted_id = row['values']['id']
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} DELETE WHERE id={deleted_id};"
             client.execute(query)
+            L.info(query)
         L.info("DELETE Success")
 
     def process_binlog_position(self, file, pos):
@@ -380,7 +382,7 @@ class MySQLReader(Reader):
                         # new event has come
                         # check what to do with it
 
-                        L.debug('Got Event ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos))
+                        # L.debug('Got Event ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos))
                         # process event based on its type
                         if isinstance(mysql_event, WriteRowsEvent):
                             self.process_write_rows_event(mysql_event)
