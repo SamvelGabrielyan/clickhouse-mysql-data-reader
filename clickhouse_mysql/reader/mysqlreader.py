@@ -314,7 +314,9 @@ class MySQLReader(Reader):
         options = AggregatedOptions()
         dst_db = options['dst_schema']
         dst_host = options['dst_host']
-        client = Client(dst_host, database=dst_db)
+        dst_user = options['dst_user']
+        dst_pass = options['dst_password']
+        client = Client(dst_host, database=dst_db, user=dst_user, password=dst_pass)
         for row in mysql_event.rows:
             updated_id = row['before_values']['id']
             what = ''
@@ -340,7 +342,9 @@ class MySQLReader(Reader):
         options = AggregatedOptions()
         dst_db = options['dst_schema']
         dst_host = options['dst_host']
-        client = Client(dst_host, database=dst_db)
+        dst_user = options['dst_user']
+        dst_pass = options['dst_password']
+        client = Client(dst_host, database=dst_db, user=dst_user, password=dst_pass)
         for row in mysql_event.rows:
             deleted_id = row['values']['id']
             query = f"ALTER TABLE {dst_db}.{mysql_event.table} DELETE WHERE id={deleted_id};"
@@ -361,7 +365,7 @@ class MySQLReader(Reader):
         # fetch events
         try:
             while True:
-                L.debug('Check events in binlog stream')
+                # L.debug('Check events in binlog stream')
 
                 self.init_fetch_loop()
 
@@ -369,7 +373,7 @@ class MySQLReader(Reader):
                 self.stat_init_fetch_loop()
 
                 try:
-                    L.debug('Pre-start binlog position: ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos) if self.binlog_stream.log_pos is not None else "undef")
+                    # L.debug('Pre-start binlog position: ' + self.binlog_stream.log_file + ":" + str(self.binlog_stream.log_pos) if self.binlog_stream.log_pos is not None else "undef")
 
                     # fetch available events from MySQL
                     for mysql_event in self.binlog_stream:
