@@ -357,7 +357,7 @@ class MySQLReader(Reader):
         if self.binlog_position_file:
             with open(self.binlog_position_file, "w") as f:
                 f.write("{}:{}".format(file, pos))
-        L.debug("Next event binlog pos: {}.{}".format(file, pos))
+        # L.debug("Next event binlog pos: {}.{}".format(file, pos))
 
     def read(self):
         # main function - read data from source
